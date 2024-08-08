@@ -6,7 +6,7 @@ FROM base AS deps
 RUN apk add --no-cache libc6-compat
 WORKDIR /okashibu
 # インストール
-COPY package.json package-lock.yaml* ./
+COPY package.json package-lock.json* ./
 RUN npm ci
 
 # ビルドステージ
