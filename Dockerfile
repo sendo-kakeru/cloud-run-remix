@@ -1,32 +1,36 @@
-FROM node:20.12.2-alpine3.18 AS base
+FROM node:20-slim AS base
+WORKDIR /application
+ENV PNPM_HOME="/pnpm"
+ENV PATH="$PNPM_HOME:$PATH"
+ENV NODE_ENV=production
+
+RUN corepack enable
 
 # 依存関係のインストールステージ
 FROM base AS deps
-# alpineイメージの本番環境ではlibc6-compatの追加が推奨されている
-RUN apk add --no-cache libc6-compat bash vim
 WORKDIR /application
+
 # インストール
-COPY package.json package-lock.json* ./
-RUN npm ci
+COPY package.json pnpm-lock.yaml* ./
+RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --prod --frozen-lockfile
 
 # ビルドステージ
 FROM base AS builder
 WORKDIR /application
-COPY --from=deps /application/node_modules ./node_modules
 COPY . .
+RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
 # ビルド
-RUN npm run build
+RUN pnpm run build
 
 # 実行ステージ
 FROM base AS runner
 WORKDIR /application
-ENV NODE_ENV production
 # linuxのグループとユーザーを作成
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 remix
 
-COPY --from=builder /application/public ./public
 COPY package.json ./
+COPY --from=builder /application/public ./public
 
 RUN mkdir build
 RUN chown remix:nodejs build
@@ -40,4 +44,4 @@ EXPOSE 3000
 
 ENV PORT=3000
 
-CMD ["npm", "run", "start"]
+CMD ["pnpm", "run", "start"]
