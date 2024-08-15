@@ -1,3 +1,14 @@
+```bash
+docker run --rm -t -i remix /bin/sh 
+
+docker build -t remix .
+
+docker run -p 3000:3000 remix 
+
+ocker container exec -it コンテナ名 sh
+```
+
+
 # Welcome to Remix!
 
 - 📖 [Remix docs](https://remix.run/docs)
