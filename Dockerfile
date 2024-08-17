@@ -10,13 +10,13 @@ RUN corepack enable
 FROM base AS deps
 # インストール
 COPY package.json pnpm-lock.yaml* ./
-RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --prod --frozen-lockfile
+RUN pnpm install --prod --frozen-lockfile
 
 # ビルドステージ
 FROM base AS builder
 # ビルド
 COPY . .
-RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
+RUN pnpm install --frozen-lockfile
 RUN pnpm run build
 
 # 実行ステージ
